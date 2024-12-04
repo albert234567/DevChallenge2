@@ -1,0 +1,36 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa; /* Fondo gris claro */
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    text-align: center;
+    margin-top: 50px;
+    color: #000000; 
+}
+
+p {
+    text-align: center;
+    margin-top: 20px;
+    color: #343a40; /* Color texto oscuro */
+}
+
+form {
+    text-align: center;
+    margin-top: 20px;
+}
+
+button {
+    background-color: #28a745; /* Color botón verde */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #218838; /* Cambio de color al pasar el cursor */
+}
