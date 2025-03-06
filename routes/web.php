@@ -3,11 +3,24 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Auth\GitHubAuthController;
+use App\Http\Controllers\Auth\GoogleController;
 
 
 Route::get('/', function () {
     return view('welcome');
 });
+
+    Route::get('/login/github', [GitHubAuthController::class, 'redirectToGithub'])
+    ->name('login.github');
+
+    Route::get('/login/github/callback', [GitHubAuthController::class, 'handleGithubCallback'])
+    ->name('login.github.callback');
+
+    Route::get('/login/google', [GoogleController::class, 'redirectToGoogle'])
+    ->name('login.google');
+    
+    Route::get('/login/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
 Route::middleware(['auth', 'verified'])->get('/dashboard', function () {
     return view('dashboard');
