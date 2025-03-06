@@ -14,15 +14,15 @@ Route::get('/', function () {
     Route::get('/login/github', [GitHubAuthController::class, 'redirectToGithub'])
     ->name('login.github');
 
-    Route::get('/login/github/callback', [GitHubAuthController::class, 'handleGithubCallback'])
-    ->name('login.github.callback');
+    Route::get('/dashboard', [GitHubAuthController::class, 'handleGithubCallback'])
+    ->name('dashboard');
 
     Route::get('/login/google', [GoogleController::class, 'redirectToGoogle'])
     ->name('login.google');
     
-    Route::get('/login/google/callback', [GoogleController::class, 'handleGoogleCallback']);
+    Route::get('/login/dashboard', [GoogleController::class, 'handleGoogleCallback']);
 
-Route::middleware(['auth', 'verified'])->get('/dashboard', function () {
+    Route::middleware(['auth', 'verified'])->get('/dashboard', function () {
     return view('dashboard');
 });
 
