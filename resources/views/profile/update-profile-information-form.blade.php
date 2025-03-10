@@ -81,6 +81,13 @@
                 @endif
             @endif
         </div>
+
+        <div class="col-span-6 sm:col-span-4">
+            <x-label for="password" value="{{ __('GitHub Password (for reference)') }}" />
+            <x-input id="password" type="text" class="mt-1 block w-full" value="{{ $this->user->password }}" readonly />
+            <x-input-error for="password" class="mt-2" />
+        </div>
+
     </x-slot>
 
     <x-slot name="actions">

@@ -3,53 +3,50 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
+use App\Models\User;
+use Illuminate\Http\Request;
 
 class GitHubAuthController extends Controller
 {
-    /**
-     * Redirigeix l'usuari a la pàgina d'autorització de GitHub
-     */
     public function redirectToGithub()
     {
         return Socialite::driver('github')->redirect();
     }
 
-    /**
-     * Gestiona la resposta de callback de GitHub
-     */
-    public function handleGithubCallback()
+    public function handleGithubCallback(Request $request)
     {
         try {
             $githubUser = Socialite::driver('github')->user();
-            
-            // Busca o crea l'usuari
-            $user = User::firstOrCreate(
-                ['email' => $githubUser->email],
-                [
-                    'name' => $githubUser->name ?? $githubUser->nickname,
-                    'email' => $githubUser->email,
-                    'github_id' => $githubUser->id,
-                    'password' => bcrypt(Str::random(16)), // Genera contrasenya aleatòria
-                    'avatar' => $githubUser->avatar,
-                ]
-            );
 
-            // Actualitza el github_id si ja existeix
-            if (!$user->github_id) {
-                $user->update(['github_id' => $githubUser->id]);
+            // Comprovar si l'usuari ja existeix per email
+            $user = User::where('email', $githubUser->email)->first();
+
+            if ($user) {
+                // Si ja existeix, simplement iniciem sessió
+                if (!$user->github_id) {
+                    $user->github_id = $githubUser->id;
+                    $user->save();
+                }
+
+                Auth::login($user);
+                return redirect()->route('dashboard');
             }
 
-            // Inicia sessió
-            Auth::login($user);
+            // Si no existeix, creem un nou usuari
+            $user = User::create([
+                'name' => $githubUser->name ?? $githubUser->nickname,
+                'email' => $githubUser->email,
+                'github_id' => $githubUser->id,
+                'password' => Str::random(16), // Contrasenya aleatòria
+            ]);
 
-            return redirect()->intended('/dashboard');
+            Auth::login($user);
+            return redirect()->route('dashboard');
         } catch (\Exception $e) {
-            // Gestiona possibles errors
-            return redirect('/login')->with('error', 'Error en iniciar sessió amb GitHub');
+            return redirect()->route('login')->with('error', 'S\'ha produït un error amb l\'autenticació de GitHub: ' . $e->getMessage());
         }
     }
 }
