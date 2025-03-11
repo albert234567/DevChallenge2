@@ -10,7 +10,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// Rutes d'autenticació amb xarxes socials
+// Rutes d'autenticació 
 Route::get('/login/github', [GitHubAuthController::class, 'redirectToGithub'])
     ->name('login.github');
 

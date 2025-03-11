@@ -40,7 +40,6 @@ class GitHubAuthController extends Controller
                 'name' => $githubUser->name ?? $githubUser->nickname,
                 'email' => $githubUser->email,
                 'github_id' => $githubUser->id,
-                'password' => Str::random(16), // Contrasenya aleatòria
             ]);
 
             Auth::login($user);

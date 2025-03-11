@@ -66,4 +66,10 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
         ];
     }
+
+        // Aquest mètode determina si la contrasenya és obligatòria
+        public static function passwordRequired()
+        {
+            return request()->is('register') || request()->is('password/*');
+        }
 }

@@ -3,31 +3,32 @@ namespace App\Http\Livewire;
 
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
+use App\Actions\Jetstream\DeleteUser;
 
 class DeleteAccount extends Component
 {
     public $confirmingUserDeletion = false;
-
-    // Trigger the modal to confirm deletion
+    
     public function confirmUserDeletion()
     {
         $this->confirmingUserDeletion = true;
     }
-
-    // Handle account deletion
+    
+    // Funció per eliminar l'usuari sense demanar la contrasenya
     public function deleteUser()
     {
-        $user = Auth::user();
-        
-        // Delete the user account
-        $user->delete();
+        try {
+            // Utilitza la classe DeleteUser per eliminar l'usuari
+            (new DeleteUser)->delete(Auth::user());
 
-        // Log out the user after deletion
-        Auth::logout();
+            // Tanca la sessió de l'usuari
+            Auth::logout();
 
-        // Redirect to home page or login page after deletion
-        return redirect('/');
+            // Redirigeix després d'eliminar l'usuari
+            return redirect('/')->with('success', 'El teu compte ha estat eliminat correctament.');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Error en eliminar el compte: ' . $e->getMessage());
+        }
     }
 
     public function render()

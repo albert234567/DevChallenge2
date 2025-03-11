@@ -19,44 +19,48 @@ class GoogleController extends Controller
     public function handleGoogleCallback()
     {
         try {
-            Log::info('Rebut callback de Google');
             $googleUser = Socialite::driver('google')->user();
-            Log::info('Dades de Google:', ['email' => $googleUser->email]);
+            Log::info('Usuari de Google rebut', ['email' => $googleUser->email]);
             
             // Buscar usuari per email
             $user = User::where('email', $googleUser->email)->first();
             
             if ($user) {
-                Log::info('Usuari trobat a la BD');
+                Log::info('S\'ha trobat un compte existent amb aquest correu', ['user_id' => $user->id]);
                 // Actualitzar google_id si no el té
                 if (!$user->google_id) {
                     $user->google_id = $googleUser->id;
                     $user->save();
-                    Log::info('Google ID actualitzat');
+                    Log::info('Google ID associat al compte existent');
+                } else {
+                    Log::info('El compte ja tenia Google ID associat');
                 }
             } else {
-                Log::info('Creant nou usuari');
-                // Crear nou usuari
+                Log::info('No s\'ha trobat cap compte amb aquest correu, creant un de nou');
+                // Crear nou usuari amb fallback pel nom
                 $user = User::create([
-                    'name' => $googleUser->name,
+                    'name' => $googleUser->name ?? $googleUser->email,
                     'email' => $googleUser->email,
-                    'google_id' => $googleUser->id,
-                    'password' => bcrypt(Str::random(24)) // Contrasenya segura aleatòria
+                    'google_id' => $googleUser->id
                 ]);
-                Log::info('Nou usuari creat');
+                Log::info('Nou usuari creat', ['user_id' => $user->id]);
             }
-
+    
             // Inicia sessió amb l'usuari
             Auth::login($user);
-            Log::info('Usuari autenticat, redirigint a dashboard');
-
-            // Redirigir directament a /dashboard
-            return redirect('/dashboard');
+            Log::info('Sessió iniciada correctament', ['user_id' => $user->id]);
+    
+            // Utilitzar route en lloc de path directe
+            return redirect()->route('dashboard');
         } catch (\Exception $e) {
-            Log::error('Error d\'autenticació de Google: ' . $e->getMessage());
-            Log::error($e->getTraceAsString());
+            // Log més simple però més informatiu
+            Log::error('Error d\'autenticació de Google: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
             
-            return redirect('/login')->with('error', 'Error en l\'autenticació de Google. Comprova els logs per a més informació.');
+            return redirect()->route('login')->with('error', 'Error en l\'autenticació de Google.');
         }
     }
 }

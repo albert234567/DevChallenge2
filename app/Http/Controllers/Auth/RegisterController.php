@@ -18,23 +18,35 @@ class RegisterController extends Controller
 
     public function register(Request $request)
     {
-        $request->validate([
+        $rules = [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
-
-        $user = User::create([
+        ];
+        
+        // Només validem contrasenya si és un registre manual
+        if (User::passwordRequired()) {
+            $rules['password'] = 'required|string|min:8|confirmed';
+        }
+        
+        $request->validate($rules);
+        
+        $userData = [
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-
+        ];
+        
+        // Només afegim contrasenya si existeix
+        if ($request->password) {
+            $userData['password'] = Hash::make($request->password);
+        }
+        
+        $user = User::create($userData);
+        
         // 📩 Enviar email de verificació
         $user->sendEmailVerificationNotification();
-
+        
         Auth::login($user);
-
-        return redirect()->route('verification.notice'); // Redirigeix a la vista de verificació
+        
+        return redirect()->route('verification.notice');
     }
 }

@@ -32,18 +32,30 @@
                 </label>
             </div>
 
-            <div class="flex items-center justify-end mt-4">
-                @if (Route::has('password.request'))
-                    <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
-                        {{ __('Forgot your password?') }}
-                    </a>
-                @endif
+            <div class="flex items-center justify-end gap-4 mt-4">
 
-                <x-button class="ms-4">
-                    {{ __('Log in') }}
-                </x-button>
-                
+            @if (Route::has('password.request'))
+                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
+                    {{ __('Forgot your password?') }}
+                </a>
+            @endif
+
+            <!-- SEPARADOR VERTICAL -->
+            <div class="h-5 w-px bg-gray-400"></div>
+
+            <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('register') }}">
+                {{ __('Not registred') }}
+            </a>
+
+            <!-- SEPARADOR VERTICAL -->
+            <div class="h-5 w-px bg-gray-400"></div>
+
+            <x-button class="ms-4">
+                {{ __('Log in') }}
+            </x-button>
+
             </div>
+
 
             <div class="flex justify-center mt-4">
                 <a href="{{ route('login.github') }}" class="btn btn-github me-3">
