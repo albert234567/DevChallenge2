@@ -21,30 +21,34 @@ class GitHubAuthController extends Controller
         try {
             $githubUser = Socialite::driver('github')->user();
 
-            // Comprovar si l'usuari ja existeix per email
-            $user = User::where('email', $githubUser->email)->first();
+            // Comprovar si l'usuari ja existeix per email o github_id
+            $user = User::where('email', $githubUser->email)
+                        ->orWhere('github_id', $githubUser->id)
+                        ->first();
 
             if ($user) {
-                // Si ja existeix, simplement iniciem sessió
+                // Si ja existeix, actualitzem el github_id si és necessari
                 if (!$user->github_id) {
                     $user->github_id = $githubUser->id;
                     $user->save();
                 }
-
-                Auth::login($user);
-                return redirect()->route('dashboard');
+            } else {
+                // Si no existeix, creem un nou usuari
+                $user = User::create([
+                    'name' => $githubUser->name ?? $githubUser->nickname,
+                    'email' => $githubUser->email,
+                    'github_id' => $githubUser->id,
+                    'password' => bcrypt(Str::random(16)), // Contraseña aleatoria
+                ]);
             }
 
-            // Si no existeix, creem un nou usuari
-            $user = User::create([
-                'name' => $githubUser->name ?? $githubUser->nickname,
-                'email' => $githubUser->email,
-                'github_id' => $githubUser->id,
-            ]);
-
-            Auth::login($user);
-            return redirect()->route('dashboard');
+            // Login del usuario y regeneración de sesión
+            Auth::login($user, true); // true para "remember me"
+            $request->session()->regenerate();
+            
+            return redirect()->intended(route('dashboard'));
         } catch (\Exception $e) {
+            \Log::error('Error en autenticación de GitHub: ' . $e->getMessage());
             return redirect()->route('login')->with('error', 'S\'ha produït un error amb l\'autenticació de GitHub: ' . $e->getMessage());
         }
     }

@@ -13,7 +13,7 @@ class RegisterController extends Controller
 {
     public function showRegistrationForm()
     {
-        return view('auth.register'); // Necessitaràs una vista de registre
+        return view('auth.register');
     }
 
     public function register(Request $request)
@@ -23,8 +23,8 @@ class RegisterController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
         ];
         
-        // Només validem contrasenya si és un registre manual
-        if (User::passwordRequired()) {
+        // Asumiendo que tienes un método en el modelo User para verificar si se requiere contraseña
+        if (method_exists(User::class, 'passwordRequired') && User::passwordRequired()) {
             $rules['password'] = 'required|string|min:8|confirmed';
         }
         
@@ -35,18 +35,20 @@ class RegisterController extends Controller
             'email' => $request->email,
         ];
         
-        // Només afegim contrasenya si existeix
         if ($request->password) {
             $userData['password'] = Hash::make($request->password);
         }
         
         $user = User::create($userData);
         
-        // 📩 Enviar email de verificació
+        // Enviar email de verificación
         $user->sendEmailVerificationNotification();
         
-        Auth::login($user);
+        // Iniciar sesión y regenerar sesión para evitar hijacking
+        Auth::login($user, true);
+        $request->session()->regenerate();
         
-        return redirect()->route('verification.notice');
+        return redirect()->route('verification.notice')
+                         ->with('success', 'Registre completat! Si us plau, verifiqueu el vostre correu electrònic.');
     }
 }
