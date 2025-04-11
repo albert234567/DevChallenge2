@@ -20,6 +20,7 @@ class GoogleController extends Controller
     public function handleGoogleCallback(Request $request)
     {
         try {
+            // Obtenir les dades de l'usuari de Google
             $googleUser = Socialite::driver('google')->user();
             Log::info('Usuari de Google rebut', ['email' => $googleUser->email]);
             
@@ -30,8 +31,10 @@ class GoogleController extends Controller
             
             if ($user) {
                 Log::info('S\'ha trobat un compte existent amb aquest correu', ['user_id' => $user->id]);
-                // Actualitzar google_id si no el té
+                
+                // Comprovació si l'usuari ja té associat un google_id
                 if (!$user->google_id) {
+                    // Si no té, assignem el google_id
                     $user->google_id = $googleUser->id;
                     $user->save();
                     Log::info('Google ID associat al compte existent');
@@ -40,12 +43,13 @@ class GoogleController extends Controller
                 }
             } else {
                 Log::info('No s\'ha trobat cap compte amb aquest correu, creant un de nou');
-                // Crear nou usuari amb fallback pel nom i contrasenya aleatòria
+                
+                // Crear un nou usuari amb el google_id i les altres dades de Google
                 $user = User::create([
-                    'name' => $googleUser->name ?? $googleUser->email,
-                    'email' => $googleUser->email,
-                    'google_id' => $googleUser->id,
-                    'password' => bcrypt(Str::random(16)) // Afegir contrasenya aleatòria
+                    'name' => $googleUser->name ?? $googleUser->email, // Nom de l'usuari
+                    'email' => $googleUser->email, // Email de l'usuari
+                    'google_id' => $googleUser->id, // Google ID
+                    'password' => bcrypt(Str::random(16)) // Contrasenya aleatòria
                 ]);
                 Log::info('Nou usuari creat', ['user_id' => $user->id]);
             }
@@ -55,16 +59,17 @@ class GoogleController extends Controller
             $request->session()->regenerate();
             Log::info('Sessió iniciada correctament', ['user_id' => $user->id]);
     
-            // Utilitzar intended per si l'usuari intentava accedir a una ruta protegida
+            // Redirigeix a la ruta protegida (dashboard)
             return redirect()->intended(route('dashboard'));
         } catch (\Exception $e) {
-            // Log més simple però més informatiu
+            // Log d'error si alguna cosa falla durant l'autenticació
             Log::error('Error d\'autenticació de Google: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine()
             ]);
-            
+    
+            // Redirigeix al login si hi ha error
             return redirect()->route('login')->with('error', 'Error en l\'autenticació de Google.');
         }
     }
